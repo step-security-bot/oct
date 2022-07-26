@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU General Public License along
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-package registry
+package offlinecheck
 
 import (
 	"os"
@@ -24,6 +24,7 @@ import (
 )
 
 func TestIsOperatorCertified(t *testing.T) {
+	checker := OfflineChecker{}
 	name := "zoperator.v0.3.6"
 	ocpversion := "4.6"
 	channel := "alpha"
@@ -33,10 +34,10 @@ func TestIsOperatorCertified(t *testing.T) {
 	if err != nil {
 		log.Println(err)
 	}
-	loadOperatorsCatalog(path + "/../")
-	ans := IsOperatorCertified(name, ocpversion, channel)
-	assert.Equal(t, ans, true)
+	loadOperatorsCatalog(path + "/../../")
+	assert.True(t, checker.IsOperatorCertified(name, ocpversion, channel))
+	name = "falcon-alpha"
+	assert.False(t, checker.IsOperatorCertified(name, ocpversion, channel))
 
-	ans = IsOperatorCertified("falcon-alpha", ocpversion, channel)
-	assert.Equal(t, ans, false)
+	assert.True(t, checker.IsOperatorCertified("artifactory-ha-operator.v1.2.0", "4.9", "alpha"))
 }

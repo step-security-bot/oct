@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU General Public License along
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-package registry
+package offlinecheck
 
 import (
 	"encoding/json"
@@ -62,15 +62,15 @@ func loadContainersCatalog(pathToRoot string) {
 	filename := fmt.Sprintf(containersRelativePath, pathToRoot)
 	f, err := os.Open(filename)
 	if err != nil {
-		logrus.Errorln("can't open file", filename, err)
+		logrus.Errorln("Cannot open file", filename, err)
 	}
 	bytes, err := io.ReadAll(f)
 	if err != nil {
-		logrus.Error("can't process file", f.Name(), err, " trying to proceed")
+		logrus.Error("Cannot process file", f.Name(), err, " trying to proceed")
 	}
 	err = json.Unmarshal(bytes, &containerdb)
 	if err != nil {
-		logrus.Error("can't marshall file", filename, err, " trying to proceed")
+		logrus.Error("Cannot marshall file", filename, err, " trying to proceed")
 	}
 }
 
@@ -78,20 +78,20 @@ func LoadBinary(bytes []byte, db map[string]*ContainerCatalogEntry) error {
 	aCatalog := ContainerPageCatalog{}
 	err := json.Unmarshal(bytes, &aCatalog)
 	if err != nil {
-		// logrus.Fatalf("can't marshall binary data: %v, data: %s", err, string(bytes))
-		return fmt.Errorf("Failed to unmarshall: %w, bytes %s", err, string(bytes))
+		return fmt.Errorf("failed to unmarshall binary data: %w, data: %s", err, string(bytes))
 	}
+
 	for i := 0; i < len(aCatalog.Data); i++ {
 		c := aCatalog.Data[i]
-		if c.Certified {
-			db[c.DockerImageDigest] = &c
-		}
+		db[c.DockerImageDigest] = &c
 	}
 
 	return nil
 }
 
-func IsCertified(registry, repository, tag, digest string) bool {
+func (checker OfflineChecker) IsContainerCertified(registry, repository, tag, digest string) bool {
+	const tagLatest = "latest"
+
 	if digest != "" {
 		if _, ok := containerdb[digest]; ok {
 			logrus.Trace("container is certified based on digest", digest)
@@ -99,23 +99,27 @@ func IsCertified(registry, repository, tag, digest string) bool {
 		}
 		return false
 	}
-	// This is a non optimized code to process
-	// the certified containers
-	// The reason behind it is users don't necessarily use image digest
-	// in deployment file.
-	// The code runs under 100 us. Not an issue in our case
+
+	// When tag is not provided, we'll default it to 'latest'
+	if tag == "" {
+		tag = tagLatest
+	}
+
+	// This is a non optimized code to process the certified containers
+	// The reason behind it is users do not necessarily use image digest
+	// in deployment file. The code runs under 100 us: not an issue in our case.
 	for _, c := range containerdb {
 		for _, repo := range c.Repositories {
 			if repo.Registry == registry && repo.Repository == repository {
 				for _, t := range repo.Tags {
 					if t.Name == tag {
-						logrus.Trace("container is certified :", repo.Registry, repo.Repository, tag)
+						logrus.Trace(fmt.Sprintf("container is not certified %s/%s:%s %s", registry, repository, tag, digest))
 						return true
 					}
 				}
 			}
 		}
 	}
-	logrus.Error("container is not certified ", registry, repository, tag, digest)
+	logrus.Error(fmt.Sprintf("container is not certified %s/%s:%s %s", registry, repository, tag, digest))
 	return false
 }
