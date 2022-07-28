@@ -1,8 +1,8 @@
 package api
 
 import (
-	"github.com/greyerof/oct/internal/api/offlinecheck"
 	"github.com/sirupsen/logrus"
+	"github.com/test-network-function/oct/internal/api/offlinecheck"
 	"helm.sh/helm/v3/pkg/release"
 )
 

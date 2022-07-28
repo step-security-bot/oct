@@ -8,9 +8,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/greyerof/oct/internal/api/offlinecheck"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/test-network-function/oct/internal/api/offlinecheck"
 	"gopkg.in/yaml.v3"
 )
 

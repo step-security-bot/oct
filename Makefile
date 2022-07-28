@@ -20,21 +20,21 @@ GO_PACKAGES=$(shell go list ./... | grep -v vendor)
 	clean \
 	lint \
 	test \
-	build-oct-tool \
+	build-oct \
 	vet
 
 OCT_TOOL_NAME=oct
 
 # Run the unit tests and build all binaries
 build:
-	make build-oct-tool
-	make test
 	make lint
+	make test
+	make build-oct
 
-build-oct-tool:
+build-oct:
 	go build -o oct -v cmd/tnf/main.go
 
-build-oct-tool-debug:
+build-oct-debug:
 	go build -gcflags "all=-N -l" -extldflags '-z relro -z now' ./${OCT_TOOL_NAME}
 
 # Cleans up auto-generated and report files

@@ -29,7 +29,7 @@ WORKDIR /root
 RUN git clone https://${TOKEN}@$OCT_REPO
 WORKDIR /root/oct
 
-RUN make build-oct-tool && \
+RUN make build-oct && \
     mkdir -p ${OCT_FOLDER} && \
 	mkdir -p ${OCT_DB_FOLDER} && \
 	ls -la ${OCT_FOLDER} && \

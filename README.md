@@ -11,7 +11,7 @@ Currently, TNF has a copy of the offline catalog of certified artifacts inside t
 - The workflow to update the DB runs (only?) once a day.
 - Partners usually want to run "stable" TNF releases (v3, v4...) so the DB inside those releases' container can be quite outdated.
 
-OCT tries to decouple the DB storing and updating tasks, as it's an isolated container. Instead of creating a new PR, this repo has a [workflow](https://github.com/greyerof/oct/blob/main/.github/workflows/recreate-image.yml) that creates a new container with the new catalog db and pushes it to quay.io, so no PRs are needed. Also, the container can be run in order to get the latest copy of certified artifacts from the online catalog. This would allow the partners to get the latest version of the catalog right before running the TNF tool for their certification processes.
+OCT tries to decouple the DB storing and updating tasks, as it's an isolated container. Instead of creating a new PR, this repo has a [workflow](https://github.com/test-network-function/oct/blob/main/.github/workflows/recreate-image.yml) that creates a new container with the new catalog db and pushes it to quay.io, so no PRs are needed. Also, the container can be run in order to get the latest copy of certified artifacts from the online catalog. This would allow the partners to get the latest version of the catalog right before running the TNF tool for their certification processes.
 Right now, the `oct` container is stored here: quay.io/greyerof/oct:latest and the DB files keep the same format as the TNF's [fetch](https://github.com/test-network-function/cnf-certification-test/blob/main/cmd/tnf/fetch/fetch.go) tool, as that tool was copied here as a starting point. 
 
 # Usage
@@ -78,7 +78,7 @@ TNF's fetch CLI tool code was copied here, so the syntax is the same, but it's h
 
       ```
 # How it works
-The `oct` container has a script [run.sh](https://github.com/greyerof/oct/blob/main/scripts/run.sh) that will run the TNF's `fetch` command. If it succeeds, the db files are copied into the container's `/tmp/dump` folder. The `OCT_DUMP_ONLY` env var is used to bypass the call to `fetch` so the current content of the container's db is copied into /tmp/dump.  
+The `oct` container has a script [run.sh](https://github.com/test-network-function/oct/blob/main/scripts/run.sh) that will run the TNF's `fetch` command. If it succeeds, the db files are copied into the container's `/tmp/dump` folder. The `OCT_DUMP_ONLY` env var is used to bypass the call to `fetch` so the current content of the container's db is copied into /tmp/dump.  
 
 The `fetch` tool was updated in this repo to retrieve the operator and container pages in a concurrent way, using a go routine for each http get. I did this modification to speed up the dev tests, as the original `fetch` implementation to the the sequantial retrieval of catalog pages was too slow (RH's online catalog takes a lot of time for each response). Do not pay too much attention to the current implementation, as the original `fetch` tool's code was copied some weeks ago, and it was modified later by some PRs in the TNF's repo.
 # Next steps
