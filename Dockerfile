@@ -1,6 +1,6 @@
 FROM registry.access.redhat.com/ubi8/ubi:latest AS build
 ARG OCT_BRANCH=main
-ARG OCT_REPO=github.com/greyerof/oct.git
+ARG OCT_REPO=github.com/test-network-function/oct.git
 ARG TOKEN
 ENV OCT_FOLDER=/usr/oct
 ENV OCT_DB_FOLDER=${OCT_FOLDER}/cmd/tnf/fetch/data
@@ -25,7 +25,6 @@ RUN if [[ "$(uname -m)" -eq "x86_64" ]] ; then \
 ENV PATH=${PATH}:"/usr/local/go/bin":${GOPATH}/"bin"
 
 WORKDIR /root
-
 RUN git clone https://${TOKEN}@$OCT_REPO
 WORKDIR /root/oct
 
