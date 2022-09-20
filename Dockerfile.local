@@ -1,5 +1,5 @@
 FROM registry.access.redhat.com/ubi8/ubi:latest AS build
-ARG OCT_CHECKOUT_FOLDER
+ARG OCT_LOCAL_FOLDER
 
 ENV OCT_FOLDER=/usr/oct
 ENV OCT_DB_FOLDER=${OCT_FOLDER}/cmd/tnf/fetch/data
@@ -24,7 +24,8 @@ RUN if [[ "$(uname -m)" -eq "x86_64" ]] ; then \
 ENV PATH=${PATH}:"/usr/local/go/bin":${GOPATH}/"bin"
 
 WORKDIR /root
-COPY ${OCT_CHECKOUT_FOLDER} .
+RUN echo "Coyping OCT from local folder ${OCT_LOCAL_FOLDER}"
+COPY ${OCT_LOCAL_FOLDER} .
 
 RUN make build-oct && \
     mkdir -p ${OCT_FOLDER} && \
@@ -33,17 +34,18 @@ RUN make build-oct && \
     cp oct ${OCT_FOLDER} && \
     ls -la ${OCT_FOLDER}/*
 
-RUN ./oct fetch --operator && \
+RUN ./oct fetch --operator --container --helm && \
     ls -laR cmd/tnf/fetch/data/* && \
 	cp -a cmd/tnf/fetch/data/* ${OCT_DB_FOLDER} && \
 	cp scripts/run.sh ${OCT_FOLDER} && \
     chmod -R 777 ${OCT_DB_FOLDER}
 
 # Copy the state into a new flattened image to reduce (layers) size.
-# FROM scratch
-# COPY --from=build / /
+# It should also hide the pull token.
+FROM scratch
+COPY --from=build / /
 
-# ENV OCT_FOLDER=/usr/oct
+ENV OCT_FOLDER=/usr/oct
 WORKDIR ${OCT_FOLDER}
 
 ENV SHELL=/bin/bash

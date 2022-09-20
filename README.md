@@ -17,7 +17,13 @@ Right now, the `oct` container is stored here: quay.io/greyerof/oct:latest and t
 # Usage
 
 TNF's fetch CLI tool code was copied here, so the syntax is the same, but it's hidden to the user, as it only needs to provide the output folder where the DB will be copied. Two things can be done with the container: (1) getting the current db stored in the container or (2) run the container app to parse the online catalog to dump the latest version.
-1. Get the current container's offline db.
+1. Create local container image or download the latest container image from quay.io/testnetworkfunction/oct:latest
+    - To create a local container image from a local checkout folder, use this docker command:
+      ```
+      docker build -t quay.io/greyerof/oct_local:test --build-arg OCT_LOCAL_FOLDER=. --no-cache -f Dockerfile.local .
+      ```
+      `OCT_LOCAL_FOLDER` should point to the folder where the oct source code/checkout is.
+2. Get the current container's offline db.
     - Create the local folder where the db will be copied by the container.
       ```
       $ mkdir db
@@ -47,7 +53,7 @@ TNF's fetch CLI tool code was copied here, so the syntax is the same, but it's h
       ```
       This command tells the container app to to nothing but copying the internal db into the destination folder.
 
-2. Get the latest (online) db.
+3. Get the latest (online) db.
     - Create the local folder where the db will be copied by the container. Same params as in (1) but without the env var.
       ```
       $ mkdir db
