@@ -26,7 +26,7 @@ import (
 
 var (
 	containerdb            = make(map[string]*ContainerCatalogEntry)
-	containersRelativePath = "%s/../cmd/tnf/fetch/data/containers/containers.db"
+	containersRelativePath = "%s/data/containers/containers.db"
 	containersLoaded       = false
 )
 
@@ -54,24 +54,26 @@ type ContainerPageCatalog struct {
 	Data     []ContainerCatalogEntry `json:"data"`
 }
 
-func loadContainersCatalog(pathToRoot string) {
+func loadContainersCatalog(offlineDBPath string) error {
 	if containersLoaded {
-		return
+		return nil
 	}
 	containersLoaded = true
-	filename := fmt.Sprintf(containersRelativePath, pathToRoot)
+	filename := fmt.Sprintf(containersRelativePath, offlineDBPath)
 	f, err := os.Open(filename)
 	if err != nil {
-		logrus.Errorln("Cannot open file", filename, err)
+		return fmt.Errorf("cannot open file %s, err: %v", filename, err)
 	}
 	bytes, err := io.ReadAll(f)
 	if err != nil {
-		logrus.Error("Cannot process file", f.Name(), err, " trying to proceed")
+		return fmt.Errorf("cannot read file %s, err: %v", filename, err)
 	}
 	err = json.Unmarshal(bytes, &containerdb)
 	if err != nil {
-		logrus.Error("Cannot marshall file", filename, err, " trying to proceed")
+		return fmt.Errorf("cannot marshall file %s, err: %v", filename, err)
 	}
+
+	return nil
 }
 
 func LoadBinary(bytes []byte, db map[string]*ContainerCatalogEntry) (entries int, err error) {
@@ -90,7 +92,7 @@ func LoadBinary(bytes []byte, db map[string]*ContainerCatalogEntry) (entries int
 	return entries, nil
 }
 
-func (checker OfflineChecker) IsContainerCertified(registry, repository, tag, digest string) bool {
+func (validator OfflineValidator) IsContainerCertified(registry, repository, tag, digest string) bool {
 	const tagLatest = "latest"
 
 	if digest != "" {

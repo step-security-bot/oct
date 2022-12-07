@@ -16,23 +16,29 @@
 package offlinecheck
 
 import (
-	"os"
+	"fmt"
 
 	log "github.com/sirupsen/logrus"
 )
 
-type OfflineChecker struct{}
+type OfflineValidator struct{}
 
-func LoadCatalogs() {
-	path, err := os.Getwd()
-	if err != nil {
-		log.Println(err)
+func LoadCatalogs(offlineDBPath string) error {
+	if offlineDBPath == "" {
+		return fmt.Errorf("no offline DB provided")
 	}
-	loadContainersCatalog(path)
-	loadHelmCatalog(path)
-	loadOperatorsCatalog(path)
-}
 
-func (checker OfflineChecker) IsServiceReachable() bool {
-	return true
+	log.Infof("Offline DB location: %s", offlineDBPath)
+
+	if err := loadContainersCatalog(offlineDBPath); err != nil {
+		return fmt.Errorf("cannot load containers catalog, err: %v", err)
+	}
+	if err := loadHelmCatalog(offlineDBPath); err != nil {
+		return fmt.Errorf("cannot load helm charts catalog, err: %v", err)
+	}
+	if err := loadOperatorsCatalog(offlineDBPath); err != nil {
+		return fmt.Errorf("cannot load operators catalog, err: %v", err)
+	}
+
+	return nil
 }

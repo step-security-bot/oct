@@ -22,13 +22,12 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-version"
-	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 	"helm.sh/helm/v3/pkg/release"
 )
 
 const (
-	helmRelativePath = "%s/../cmd/tnf/fetch/data/helm/helm.db"
+	helmRelativePath = "%s/data/helm/helm.db"
 )
 
 type ChartEntry struct {
@@ -43,27 +42,28 @@ type ChartStruct struct {
 var chartsdb = make(map[string][]ChartEntry)
 var loaded = false
 
-func loadHelmCatalog(pathToRoot string) {
+func loadHelmCatalog(offlineDBPath string) error {
 	if loaded {
-		return
+		return nil
 	}
 	loaded = true
-	filePath := fmt.Sprintf(helmRelativePath, pathToRoot)
+	filePath := fmt.Sprintf(helmRelativePath, offlineDBPath)
 	f, err := os.Open(filePath)
 	if err != nil {
-		log.Error("Cannot process file", f.Name(), err, " trying to proceed")
-		return
+		return fmt.Errorf("cannot process file %s, err: %v", filePath, err)
 	}
 	defer f.Close()
 	bytes, err := io.ReadAll(f)
 	if err != nil {
-		log.Error("Cannot process file", f.Name(), err, " trying to proceed")
+		return fmt.Errorf("cannot process file %s, err: %v", filePath, err)
 	}
 	var charts ChartStruct
 	if err = yaml.Unmarshal(bytes, &charts); err != nil {
-		log.Error("error while parsing the yaml file of the helm certification list ", err)
+		return fmt.Errorf("cannot parse the yaml file of the helm certification list, err: %v", err)
 	}
 	chartsdb = charts.Entries
+
+	return nil
 }
 
 func LoadHelmCharts(charts ChartStruct) {
@@ -92,7 +92,7 @@ func CompareVersion(ver1, ver2 string) bool {
 	return false
 }
 
-func (checker OfflineChecker) IsReleaseCertified(helm *release.Release, ourKubeVersion string) bool {
+func (validator OfflineValidator) IsHelmChartCertified(helm *release.Release, ourKubeVersion string) bool {
 	for _, entryList := range chartsdb {
 		for _, entry := range entryList {
 			if entry.Name == helm.Chart.Metadata.Name && entry.Version == helm.Chart.Metadata.Version {
